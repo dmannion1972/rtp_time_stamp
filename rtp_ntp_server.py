@@ -48,33 +48,49 @@ def create_rtp_packet_with_ntp(frame_data, ntp_server):
 
 # Function to capture frames from the Axis camera
 def capture_frames_from_camera(rtsp_url, ntp_server):
+    print("Opening video capture")
     cap = cv2.VideoCapture(rtsp_url)
 
+    if not cap.isOpened():
+        print("Failed to open video capture. Check RTSP URL and network connection.")
+        return
+
     while True:
+        print("Attempting to read frame...")
         ret, frame = cap.read()
         if not ret:
+            print("Failed to read frame.")
             break
 
+        print("Frame read successfully. Processing...")
+
         # Process the frame (e.g., convert to bytes, compress, etc.)
-        # This is a placeholder; actual processing depends on your requirements
         frame_data = cv2.imencode('.jpg', frame)[1].tobytes()
 
         # Create RTP packet with NTP timestamp from specific NTP server
+        print("Creating RTP packet with NTP timestamp...")
         rtp_packet = create_rtp_packet_with_ntp(frame_data, ntp_server)
 
+        # Extract the NTP timestamp and print it
+        seconds, fractions = get_ntp_timestamp(ntp_server)
+        print(f"NTP Timestamp: {seconds}.{fractions}")
+
+        print("RTP packet created.")
         # Send RTP packet over a network (omitted for brevity)
         # ...
+        print("Processed frame. Moving to next frame...")
 
     cap.release()
+    print("Video capture released.")
+
 
 # Main function
 def main():
     # RTSP URL of the Axis camera and NTP server address
     rtsp_url = "rtsp://root:pass@192.168.0.90/axis-media/media.amp"
-    ntp_server = "192.168.0.91"
+    ntp_server = "192.168.0.252"
     
     capture_frames_from_camera(rtsp_url, ntp_server)
 
 if __name__ == "__main__":
     main()
-
